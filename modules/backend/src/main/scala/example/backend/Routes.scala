@@ -1,18 +1,15 @@
 package example.backend
 
 import scala.concurrent.duration.*
-
 import cats.*
 import cats.effect.*
-
-import org.http4s.HttpRoutes
-import org.http4s.StaticFile
+import org.http4s.{EntityDecoder, HttpRoutes, StaticFile, multipart}
 import org.http4s.circe.CirceEntityDecoder
 import org.http4s.circe.CirceEntityDecoder.*
 import org.http4s.circe.CirceEntityEncoder.*
 import org.http4s.dsl.Http4sDsl
-
 import example.shared.Protocol.*
+import fs2.io.file.{Files, Path => FsPath}
 
 class Routes(
     service: Service,
@@ -31,6 +28,24 @@ class Routes(
         // loader gif
         resp <- Ok(result) <* IO.sleep(50.millis)
       yield resp
+
+
+    //https://app.gitter.im/#/room/#http4s_http4s:gitter.im
+    case request @ POST -> Root / "upload" =>
+      for
+        req <- implicitly[EntityDecoder[IO, multipart.Multipart[IO]]]
+          .decode(request, strict = true)
+          .value
+        result <-  req match {
+          case Left(_) => BadRequest()
+          case Right(mp) =>
+            Traverse[Vector].traverse(mp.parts)   { part =>
+              Files[IO].writeAll(FsPath( s"d://storage//${part.filename}"))(part.body)
+                .compile.drain
+            }.flatMap( Ok(_) )
+        }
+      yield result
+
 
     case request @ GET -> Root / "frontend" / "app.js" =>
       StaticFile
