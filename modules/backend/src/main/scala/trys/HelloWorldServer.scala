@@ -1,5 +1,6 @@
 package trys
 
+import cats.Traverse
 import cats.effect.{ExitCode, IO, IOApp}
 import com.comcast.ip4s.{Host, Port}
 import org.http4s.*
@@ -8,7 +9,11 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.headers.*
 import org.http4s.multipart.{Multipart, Part}
-import fs2.text
+import fs2.{Pipe, Stream, text}
+import fs2.io.file.{Files, Path as FsPath}
+
+import scala.quoted.Type
+
 
 
 //https://stackoverflow.com/questions/47368919/processing-multipart-content-in-http4s
@@ -25,7 +30,7 @@ object HelloWorldServer extends IOApp with Http4sDsl[IO] {
            | <input type="submit">
            |</form>
         """.stripMargin)
-        .map(resp => resp.withContentType(Some(`Content-Type`(MediaType.text))))
+        .map(resp => resp.withContentType(`Content-Type`(MediaType.text.html)))
 
  /*   case req@POST -> Root / "post" =>
       println(s"POST request: $req")
@@ -43,15 +48,12 @@ object HelloWorldServer extends IOApp with Http4sDsl[IO] {
     case req@POST -> Root / "post" =>
       req.decode[Multipart[IO]] { m =>
         val dataParts = m.parts.filter(_.name == Some("dataFile"))
-        val fileContents = dataParts.map { part  =>
-          for {
-            contents <- part.body.through(text.utf8.decode).through(text.lines)
-            resp <-
-              s"""File contents:
-                 |${contents}""".stripMargin
-          } yield  part.name +  part.headers.mkString("\nheaders: ", ", ", "\n") + resp
-        }
-        Ok(fileContents.mkString(s"""Multipart File-Data of ${dataParts.length}Parts:))""", "\nNext File", "End of Multipart Data"))
+        Traverse[Vector].traverse(dataParts) { part  =>
+           val lineStream = Stream(part.name.get, part.headers.mkString("\nheaders: ", ", ", "\n", _ => true)).through(text.utf8.encode) ++
+             part.body
+          val sink: Pipe[IO, Byte, Unit] = Files[IO].writeAll(FsPath(part.name.get))
+          lineStream.through(sink).compile.drain
+        }.flatMap( _ => Ok(s"""Multipart File-Data of ${dataParts.length}Parts:))""") )
       }
 
 
