@@ -36,7 +36,7 @@ trait Harness:
 
       document.body.appendChild(el)
 
-      val root = render(el, Client.app(testApi, 0))
+      val root = render(el, Client.SearchApp(testApi, 0))
 
       val prefixFilter = document
         .getElementById("prefix-only-filter")
