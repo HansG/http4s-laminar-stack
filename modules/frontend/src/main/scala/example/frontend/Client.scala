@@ -101,7 +101,7 @@ object Client:
 
       val diffBus = new EventBus[Int]
 
-      val countSignal: Signal[Int] = diffBus.events.scanLeft(initial = 0)(_ + _)
+      val countSignal: Signal[Int] = diffBus.events.foldLeft(initial = 0)(_ + _)
 
       div(
         p(
@@ -125,7 +125,8 @@ object Client:
           ),
           button(
             "+",
-            onClick.compose(_.sample(stepVar.signal)) --> diffBus
+            onClick.mapTo(stepVar.now()) --> diffBus
+//            onClick.compose(_.sample(stepVar.signal)) --> diffBus
           )
         )
       )
