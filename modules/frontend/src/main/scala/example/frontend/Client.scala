@@ -305,7 +305,7 @@ object Client:
         children <-- isEditingVar.signal.map[List[HtmlElement]] {
           case true =>
             renderTextUpdateInput(itemId, itemSignal, updateTextObserver) :: Nil
-          case------------------------------- false =>
+          case false =>
             List(
               renderCheckboxInput(itemId, itemSignal),
               label(child.text <-- itemSignal.map(_.text)),
