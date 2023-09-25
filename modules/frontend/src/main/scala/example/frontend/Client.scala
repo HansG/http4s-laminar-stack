@@ -1,6 +1,7 @@
 package example.frontend
 
 import com.raquo.laminar.api.L.*
+import com.raquo.laminar.api.L.given
 import org.scalajs.dom
 
 object Client:
@@ -199,8 +200,6 @@ object Client:
 
   object TodoMvcApp :
 
-    import com.raquo.laminar.api.L.given
-    import org.scalajs.dom
     // This implementation is very loosely based on Outwatch TodoMVC, for comparison see
     // https://github.com/clovellytech/outwatch-examples/tree/master/todomvc/src/main/scala/todomvc
 
@@ -210,21 +209,24 @@ object Client:
     case class TodoItem(id: Int, text: String, completed: Boolean)
 
 
-    sealed abstract class Filter(val name: String, val passes: TodoItem => Boolean)
-    object ShowAll extends Filter("All", _ => true)
-    object ShowActive extends Filter("Active", !_.completed)
-    object ShowCompleted extends Filter("Completed", _.completed)
+    enum Filter(val name: String, val passes: TodoItem => Boolean):
+      case ShowAll extends Filter("All", _ => true)
+      case ShowActive extends Filter("Active", !_.completed)
+      case ShowCompleted extends Filter("Completed", _.completed)
 
-    val filters: List[Filter] = ShowAll :: ShowActive :: ShowCompleted :: Nil
+    import Filter.*
+
+    val filters  = Filter.values // ShowAll :: ShowActive :: ShowCompleted :: Nil
 
 
-    sealed trait Command
+    trait Command
     case class Create(itemText: String) extends Command
-    case class UpdateText(itemId: Int, text: String) extends Command
-    case class UpdateCompleted(itemId: Int, completed: Boolean) extends Command
-    case class Delete(itemId: Int) extends Command
-    case object DeleteCompleted extends Command
+    case class  UpdateText(itemId: Int, text: String) extends Command
+    case  class  UpdateCompleted(itemId: Int, completed: Boolean) extends Command
+    case  class  Delete(itemId: Int) extends Command
+    case  object  DeleteCompleted extends Command
 
+    //import Command.*
 
     // --- State ---
 
@@ -236,7 +238,7 @@ object Client:
     private var lastId = 1 // just for auto-incrementing IDs
 
     private val commandObserver = Observer[Command] {
-      case Create(itemText) =>
+      case Create(itemText)  =>
         lastId += 1
         if (filterVar.now() == ShowCompleted)
           filterVar.set(ShowAll)
@@ -255,10 +257,10 @@ object Client:
     // --- Views ---
 
     lazy val node: HtmlElement = {
-      val todoItemsSignal = itemsVar
+      val todoItemsSignal0 = itemsVar
         .signal
         .combineWith(filterVar.signal)
-        .mapN(_ filter _.passes)
+      val todoItemsSignal =  todoItemsSignal0.mapN((li, f) =>  li filter f.passes)
       div(
         cls("todoapp"),
         div(
@@ -286,8 +288,8 @@ object Client:
         onEnterPress
           .mapToValue
           .filter(_.nonEmpty)
-          .map(Create(_))
-          .setValue("") --> commandObserver
+          .map(Create(_)) --> commandObserver
+//          .setAsValue("")
       )
 
     // Render a single item. Note that the result is a single element: not a stream, not some virtual DOM representation.
@@ -303,7 +305,7 @@ object Client:
         children <-- isEditingVar.signal.map[List[HtmlElement]] {
           case true =>
             renderTextUpdateInput(itemId, itemSignal, updateTextObserver) :: Nil
-          case false =>
+          case------------------------------- false =>
             List(
               renderCheckboxInput(itemId, itemSignal),
               label(child.text <-- itemSignal.map(_.text)),
@@ -394,10 +396,10 @@ object Client:
 
 
 
-def main(args: Array[String]): Unit =
-      documentEvents.onDomContentLoaded.foreach { _ =>
-        render(dom.document.getElementById("appContainer"), div(SearchApp(FutureApi), HelloWorld.rootElement, Time.timeApp, Time.clickApp)  )
-      }(unsafeWindowOwner)
+  def main(args: Array[String]): Unit =
+        documentEvents.onDomContentLoaded.foreach { _ =>
+          render(dom.document.getElementById("appContainer"), div(SearchApp(FutureApi), HelloWorld.rootElement, Time.timeApp, Time.clickApp)  )
+        }(unsafeWindowOwner)
 
 
 
