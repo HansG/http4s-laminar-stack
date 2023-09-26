@@ -196,6 +196,7 @@ object Client:
         case None => span(cls("-success"), "Email ok!")
       }
     )
+  end Time
 
 
   object TodoMvcApp :
@@ -216,7 +217,7 @@ object Client:
 
     import Filter.*
 
-    val filters  = Filter.values // ShowAll :: ShowActive :: ShowCompleted :: Nil
+    val filters  = Filter.values.toList // ShowAll :: ShowActive :: ShowCompleted :: Nil
 
 
     trait Command
@@ -343,7 +344,7 @@ object Client:
       )
 
     private def renderStatusBar =
-      footerTag(
+      footer(
         hideIfNoItems,
         cls("footer"),
         span(
@@ -386,7 +387,7 @@ object Client:
     private def pluralize(num: Int, singular: String, plural: String): String =
       s"$num ${if (num == 1) singular else plural}"
 
-    private val onEnterPress = onKeyPress.filter(_.keyCode == dom.ext.KeyCode.Enter)
+    private val onEnterPress = onKeyPress.filter(_.keyCode == dom.KeyCode.Enter)
 
   end TodoMvcApp
 
@@ -398,7 +399,7 @@ object Client:
 
   def main(args: Array[String]): Unit =
         documentEvents.onDomContentLoaded.foreach { _ =>
-          render(dom.document.getElementById("appContainer"), div(SearchApp(FutureApi), HelloWorld.rootElement, Time.timeApp, Time.clickApp)  )
+          render(dom.document.getElementById("appContainer"), div(SearchApp(FutureApi), HelloWorld.rootElement, Time.timeApp, Time.clickApp, TodoMvcApp.node)  )
         }(unsafeWindowOwner)
 
 
