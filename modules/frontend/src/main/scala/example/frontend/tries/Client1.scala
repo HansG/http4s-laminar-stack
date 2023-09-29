@@ -203,7 +203,7 @@ object Client1:
 
 
 
-  def main(args: Array[String]): Unit =
+  def mainX(args: Array[String]): Unit =
         documentEvents.onDomContentLoaded.foreach { _ =>
           render(dom.document.getElementById("appContainer"), TodoMvcApp.node  )
         }(unsafeWindowOwner)
