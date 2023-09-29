@@ -1,11 +1,10 @@
 package example.frontend
 
 import scala.concurrent.Future
-
 import cats.effect.IO
 import cats.effect.Resource
-
 import com.raquo.laminar.api.L.*
+import example.frontend.tries.ClientSet
 import example.shared.Protocol.GetSuggestions.Response
 import org.scalajs.dom
 import org.scalajs.dom.raw.Event
@@ -36,7 +35,7 @@ trait Harness:
 
       document.body.appendChild(el)
 
-      val root = render(el, Client.SearchApp(testApi, 0))
+      val root = render(el, ClientSet.SearchApp(testApi, 0))
 
       val prefixFilter = document
         .getElementById("prefix-only-filter")

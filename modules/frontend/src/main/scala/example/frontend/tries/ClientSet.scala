@@ -1,7 +1,7 @@
-package example.frontend
+package example.frontend.tries
 
 import com.raquo.laminar.api.L.*
-import com.raquo.laminar.api.L.given
+import example.frontend.{Api, FutureApi}
 import org.scalajs.dom
 
 object ClientSet:

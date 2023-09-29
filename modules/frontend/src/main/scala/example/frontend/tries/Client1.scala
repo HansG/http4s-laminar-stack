@@ -1,4 +1,4 @@
-package example.frontend
+package example.frontend.tries
 
 import com.raquo.laminar.api.L.*
 import org.scalajs.dom
@@ -205,7 +205,7 @@ object Client1:
 
   def main(args: Array[String]): Unit =
         documentEvents.onDomContentLoaded.foreach { _ =>
-          render(dom.document.getElementById("appContainer"), div(TodoMvcApp.node)  )
+          render(dom.document.getElementById("appContainer"), TodoMvcApp.node  )
         }(unsafeWindowOwner)
 
 
