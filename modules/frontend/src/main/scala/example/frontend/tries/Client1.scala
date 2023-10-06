@@ -68,6 +68,7 @@ object Client1:
         .signal
         .combineWith(filterVar.signal)
       val todoItemsSignal =  todoItemsSignal0.mapN((li, f) =>  li filter f.passes)
+      val todoWidgetSignal = todoItemsSignal.split(_.id)(renderTodoItem)
       div(
         cls("todoapp"),
         div(
@@ -80,7 +81,7 @@ object Client1:
           cls("main"),
           ul(
             cls("todo-list"),
-            children <-- todoItemsSignal.split(_.id)(renderTodoItem)
+            children <-- todoWidgetSignal
           )
         ),
         renderStatusBar
